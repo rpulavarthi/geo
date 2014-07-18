@@ -1,0 +1,59 @@
+<?php
+
+	//
+	// T-Mobile:GSM
+	//
+	$layer_config['T-Mobile']['GSM']['kpiClass'] = 'TMobileKPI';
+	$layer_config['T-Mobile']['GSM']['styles'] = array('cluster' => array('cluster_size'), 'cell' => array('cell_type_gsm'), 'pie'=> array('pie_carrier_count'));
+	//required fields => key , lat, long, geom in 900913
+	$layer_config['T-Mobile']['GSM']['cellSQL'] = 'select site_id as key, max(bsc_name) as switch_id, max(cell) as cell_id, max(latitude) as lat, max(longitude) as lon,  ST_Transform(ST_SetSRID(ST_MakePoint(max(longitude), max(latitude)), 4326), 900913) as geom
+														FROM 
+														$schema.t_mobile_gsm_sectors 
+														GROUP BY site_id';
+															
+	$layer_config['T-Mobile']['GSM']['WMS']['pieRadius'] = 40;															
+	$layer_config['T-Mobile']['GSM']['sectorSQL'] = 'SELECT site_id as key, 
+																bsc_name, 
+																St_y(St_transform(geom, $srid)) AS latitude, 
+																St_x(St_transform(geom, $srid)) AS longitude, 																	 substring((site_id),8,1) as sector,	
+																cell,
+																azimuth,
+																\'65\' as hbw,
+																\'1\' AS carrier_count, 
+																bsic,
+																vendor,
+																cell2
+															FROM 
+															$schema.t_mobile_gsm_sectors
+															WHERE site_id IN ($sql)';
+
+															
+															
+															//
+	// T-Mobile:UMTS
+	//
+	$layer_config['T-Mobile']['UMTS']['kpiClass'] = 'TMobileKPI';
+	$layer_config['T-Mobile']['UMTS']['styles'] = array('cluster' => array('cluster_size'), 'cell' => array('cell_type_umts'), 'pie'=> array('pie_carrier_count'));
+	//required fields => key , lat, long, geom in 900913
+	$layer_config['T-Mobile']['UMTS']['cellSQL'] = 'select site_id as key, max(rnc) as switch_id, max(cell) as cell_id, max(latitude) as lat, max(longitude) as lon, ST_Transform(ST_SetSRID(ST_MakePoint(max(longitude), max(latitude)), 4326), 900913) as geom
+														FROM 
+													$schema.t_mobile_umts_sectors 
+													GROUP BY site_id';
+															
+	$layer_config['T-Mobile']['UMTS']['WMS']['pieRadius'] = 40;															
+	$layer_config['T-Mobile']['UMTS']['sectorSQL'] = 'SELECT site_id as key, 
+														max(rnc) as switch_id, 
+														St_y(St_transform(MAX(geom), $srid)) AS latitude, 
+														St_x(St_transform(MAX(geom), $srid)) AS longitude, 																 substring(max(cell),10,1) as sector,	
+														max(cell) as cell,
+														azimuth,
+														\'65\' as hbw,
+														count(*) AS carrier_count, 
+														max(vendor) as vendor ,
+														max(tech) as tech,
+														max(cell_uid) cell_uid				
+													FROM 
+														$schema.t_mobile_umts_sectors
+														WHERE site_id IN ($sql)
+													group by site_id, azimuth';
+?>
